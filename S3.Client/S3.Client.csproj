@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net10.0;net9.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<Version>0.1.0</Version>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<RepositoryUrl>https://github.com/ETCDema/S3.Client</RepositoryUrl>
+		<PackageTags>s3 vault client</PackageTags>
+		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+		<PackageId>Dm.$(AssemblyName)</PackageId>
+		<Authors>Dema</Authors>
+		<Description>A tiny library for working with services that support the S3 API. It focuses on minimal size and basic functionality. [RU] Маленькая библиотека для работы с сервисами, поддерживающими S3 API. Она ориентирована на минимальный размер и базовую функциональность.</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/ETCDema/S3.Client</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>logo.png</PackageIcon>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\logo.png">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="LinkDotNet.StringBuilder" Version="3.7.1" />
+	  <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="10.0.12" />
+	</ItemGroup>
+
+</Project>

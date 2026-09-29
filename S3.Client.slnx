@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path="logo.drawio" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="S3.Client.Test/S3.Client.Test.csproj" Id="81f5cefd-f44b-4a4f-bcf5-effcce7deb9f" />
+  <Project Path="S3.Client/S3.Client.csproj" />
+</Solution>

@@ -1,0 +1,22 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.1.2 Chrome/138.0.7204.243 Electron/37.4.0 Safari/537.36" version="28.1.2">
+  <diagram id="IKq3ogCn9mU_d23SS-Lm" name="Страница — 1">
+    <mxGraphModel dx="504" dy="456" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="200" pageHeight="180" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="tzsJyIyARVwExogl4WY0-1" value="" style="html=1;whiteSpace=wrap;shape=isoCube2;backgroundOutline=1;isoAngle=15.059523809523814;strokeColor=#000000;fillColor=#dae8fc;strokeWidth=3;perimeterSpacing=0;shadow=1;shadowOffsetX=0;shadowOffsetY=0;shadowBlur=3;" parent="1" vertex="1">
+          <mxGeometry x="20" y="20" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tzsJyIyARVwExogl4WY0-3" value="" style="html=1;whiteSpace=wrap;shape=isoCube2;backgroundOutline=1;isoAngle=15.162044101291219;strokeColor=#000000;fillColor=#d5e8d4;strokeWidth=3;perimeterSpacing=0;shadow=1;shadowOffsetX=0;shadowOffsetY=0;shadowBlur=3;" parent="1" vertex="1">
+          <mxGeometry x="100" y="20" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tzsJyIyARVwExogl4WY0-2" value="" style="html=1;whiteSpace=wrap;shape=isoCube2;backgroundOutline=1;isoAngle=15.456343151274172;strokeColor=#000000;fillColor=#f8cecc;shadow=1;strokeWidth=3;perimeterSpacing=0;shadowOffsetX=0;shadowOffsetY=0;shadowBlur=3;" parent="1" vertex="1">
+          <mxGeometry x="60" y="80" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="tzsJyIyARVwExogl4WY0-4" value="S3" style="text;align=center;verticalAlign=middle;rounded=0;fontSize=119;fillColor=none;strokeColor=none;fontColor=#6C8EBF;labelBackgroundColor=none;labelBorderColor=none;textShadow=1;fontFamily=Verdana;spacing=0;fontStyle=1;shadowOffsetX=0;shadowOffsetY=0;shadowBlur=8;shadowOpacity=50;shadowColor=#BFBFBF;fillOpacity=100;strokeOpacity=100;" parent="1" vertex="1">
+          <mxGeometry width="200" height="150" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
