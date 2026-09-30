@@ -86,8 +86,7 @@ namespace S3.Client.Test
 			Assert.NotEmpty(result.ETag);
 
 			var getTags         = await bucket.TryGetObjectTags(key, TestContext.Current.CancellationToken);
-			// VaultS3 BUG: tags from header not decoded
-			//Assert.Equal(tags, getTags);
+			Assert.Equal(tags, getTags);
 
 			var delResult       = await bucket.DeleteObject(key, TestContext.Current.CancellationToken);
 			Assert.NotNull(delResult);
