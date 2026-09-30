@@ -5,6 +5,9 @@ using S3.Client.Const;
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Метаданные объекта в бакете
+/// </summary>
 public class S3ObjectInfo
 {
 	internal S3ObjectInfo(string key, HttpResponseMessage response)

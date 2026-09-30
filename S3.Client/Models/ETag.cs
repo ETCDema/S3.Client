@@ -2,7 +2,7 @@
 
 public readonly struct ETag(string value)
 {
-    public string Value { get; } = value;
+    public string Value			{ get; } = value;
 
     public readonly byte[]? AsMD5()
     {

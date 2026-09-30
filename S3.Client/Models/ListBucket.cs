@@ -3,8 +3,14 @@ using System.Xml.Serialization;
 
 namespace S3.Client.Models
 {
+	/// <summary>
+	/// Данные получения списка объектов
+	/// </summary>
 	public static class ListBucket
 	{
+		/// <summary>
+		/// Параметры запроса списка
+		/// </summary>
 		public sealed class Options : OptionsCore
 		{
 			public Options()
@@ -12,48 +18,21 @@ namespace S3.Client.Models
 				Set("list-type", "2"); // https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html
 			}
 
-			public string? Delimiter
-			{
-				get => Get("delimiter");
-				init => Set("delimiter", value);
-			}
+			public string? Delimiter			{ get => Get("delimiter"); init => Set("delimiter", value); }
 
-			public string? Prefix
-			{
-				get => Get("prefix");
-				init => Set("prefix", value);
-			}
+			public string? Prefix				{ get => Get("prefix"); init => Set("prefix", value); }
 
-			public string? ContinuationToken
-			{
-				get => Get("continuation-token");
-				init => Set("continuation-token", value);
-			}
+			public string? ContinuationToken	{ get => Get("continuation-token"); init => Set("continuation-token", value); }
 
-			public string? StartAfter
-			{
-				get => Get("start-after");
-				init => Set("start-after", value);
-			}
+			public string? StartAfter			{ get => Get("start-after"); init => Set("start-after", value); }
 
-			/*
-			public string? EncodingType
-			{
-				get => Get("encoding-type");
-				set => Set("encoding-type", value);
-			}
-			*/
+			// TODO?: public string? EncodingType			{ get => Get("encoding-type"); set => Set("encoding-type", value); }
 
 			public int? MaxKeys
 			{
 				get
 				{
-					if (Get("max-keys") is string maxKeys)
-					{
-						return int.Parse(maxKeys, NumberStyles.None, CultureInfo.InvariantCulture);
-					}
-
-					return null;
+					return Get("max-keys") is string maxKeys ? int.Parse(maxKeys, NumberStyles.None, CultureInfo.InvariantCulture) :null;
 				}
 				init
 				{
@@ -62,56 +41,65 @@ namespace S3.Client.Models
 			}
 		}
 
+		/// <summary>
+		/// Полученные данные
+		/// </summary>
 		[XmlRoot("ListBucketResult", Namespace = S3Client.Namespace)]
 		public sealed class Result
 		{
 			[XmlElement("Name")]
-			public string Name { get; init; } = default!;
+			public string Name			{ get; init; } = default!;
 
 			/// <summary>
 			/// If StartAfter was sent with the request, it is included in the response.
 			/// </summary>
 			[XmlElement("StartAfter")]
-			public string? StartAfter { get; init; }
+			public string? StartAfter	{ get; init; }
 
 			[XmlElement("KeyCount")]
-			public int KeyCount { get; init; }
+			public int KeyCount			{ get; init; }
 
 			[XmlElement("MaxKeys")]
-			public int MaxKeys { get; init; }
+			public int MaxKeys			{ get; init; }
 
 			[XmlElement("Prefix")]
-			public string? Prefix { get; init; }
+			public string? Prefix		{ get; init; }
 
 			[XmlElement("NextContinuationToken")]
 			public string? NextContinuationToken { get; init; }
 
 			[XmlElement("IsTruncated")]
-			public bool IsTruncated { get; init; }
+			public bool IsTruncated		{ get; init; }
 
+			/// <summary>
+			/// Массив метаданных объектов
+			/// </summary>
 			[XmlElement("Contents")]
-			public Object[]? Items { get; init; }
+			public Object[]? Items		{ get; init; }
 
+			/// <summary>
+			/// Метаданные объекта
+			/// </summary>
 			[XmlRoot("Contents", Namespace = S3Client.Namespace)]
 			public sealed class Object
 			{
 				[XmlElement("Key")]
-				public string Key { get; init; } = default!;
+				public string Key				{ get; init; } = default!;
 
 				[XmlElement("LastModified", DataType = "dateTime")]
-				public DateTime LastModified { get; init; }
+				public DateTime LastModified	{ get; init; }
 
 				[XmlElement("ETag")]
-				public string ETag { get; init; } = default!;
+				public string ETag				{ get; init; } = default!;
 
 				[XmlElement("Size")]
-				public long Size { get; init; }
+				public long Size				{ get; init; }
 
 				[XmlElement("StorageClass")]
-				public string StorageClass { get; init; } = default!;
+				public string StorageClass		{ get; init; } = default!;
 
 				[XmlElement("Owner")]
-				public Owner Owner { get; init; } = Owner.Empty;
+				public Owner Owner				{ get; init; } = Owner.Empty;
 			}
 		}
 

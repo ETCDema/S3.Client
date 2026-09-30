@@ -2,7 +2,10 @@ using System.Net;
 
 namespace S3.Client.Models.Errors;
 
-public sealed class S3Exception: Exception, IException
+/// <summary>
+/// Исключение при работе с S3 сервисом
+/// </summary>
+public sealed class S3Exception: Exception
 {
     private readonly S3Error? _error;
 
@@ -33,5 +36,5 @@ public sealed class S3Exception: Exception, IException
 
     public S3Error? Error		=> _error;
 
-    public bool IsTransient		=> HttpStatusCode is HttpStatusCode.InternalServerError or HttpStatusCode.ServiceUnavailable; // 500 || 503
+    public bool IsTransient		=> HttpStatusCode is HttpStatusCode.InternalServerError or HttpStatusCode.ServiceUnavailable; // 500 или 503
 }

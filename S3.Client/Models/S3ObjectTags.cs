@@ -2,6 +2,9 @@
 
 namespace S3.Client.Models
 {
+	/// <summary>
+	/// Ответ на запрос тэгов объекта
+	/// </summary>
 	[XmlRoot("Tagging", Namespace = S3Client.Namespace)]
 	public class S3ObjectTags
 	{

@@ -2,6 +2,9 @@
 
 namespace S3.Client.Helpers
 {
+	/// <summary>
+	/// Пул массивов строк для повторного использования
+	/// </summary>
 	internal class StringListPool: IPooledObjectPolicy<List<string>>
 	{
 		private static readonly StringListPool _INSTANCE = new();

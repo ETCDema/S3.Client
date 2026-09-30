@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 using System.Text.Encodings.Web;
 
 using LinkDotNet.StringBuilder;
@@ -9,8 +8,14 @@ using S3.Client.Services;
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Данные для загрузки объектов
+/// </summary>
 public static class PutObject
 {
+	/// <summary>
+	/// Запрос загрузки объекта или его части
+	/// </summary>
 	public class Request : S3Request
 	{
 		internal Request(S3Bucket bucket, string key)
@@ -21,6 +26,12 @@ public static class PutObject
 			CompletionOption = HttpCompletionOption.ResponseContentRead;
 		}
 
+		/// <summary>
+		/// Инициализировать контент из массива байт
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="contentType"></param>
+		/// <returns></returns>
 		public Request SetContent(byte[] content, string contentType = "application/octet-stream")
 		{
 			Content             = new ByteArrayContent(content)
@@ -32,28 +43,45 @@ public static class PutObject
 			return this;
 		}
 
+		/// <summary>
+		/// Инициализировать контент из строки
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="contentType"></param>
+		/// <returns></returns>
 		public Request SetContent(string content, string contentType = "text/plain")
 		{
 			Content             = new StringContent(content, Encoding.UTF8, contentType);
 			return this;
 		}
 
+		/// <summary>
+		/// Инициализировать контент из потока
+		/// </summary>
+		/// <param name="stream"></param>
+		/// <param name="contentType"></param>
+		/// <returns></returns>
 		public Request SetContent(Stream stream, string contentType = "application/octet-stream")
 		{
 			SetContent(stream, HashHelper.TryComputeSHA256(stream), contentType);
 			return this;
 		}
 
+		/// <summary>
+		/// Инициализировать контент из потока с вычисленным хэшем
+		/// </summary>
+		/// <param name="stream"></param>
+		/// <param name="sha256Hash"></param>
+		/// <param name="contentType"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public Request SetContent(Stream stream, byte[]? sha256Hash, string contentType = "application/octet-stream")
 		{
 			ArgumentNullException.ThrowIfNull(stream);
 			ArgumentException.ThrowIfNullOrEmpty(contentType);
 
-			if (stream.Length is 0)
-				throw new ArgumentException("Must not be empty", nameof(stream));
-
-			if (contentType.Length is 0)
-				throw new ArgumentException("Required", nameof(contentType));
+			if (stream.Length is 0) throw new ArgumentException("Must not be empty", nameof(stream));
+			if (contentType.Length is 0) throw new ArgumentException("Required", nameof(contentType));
 
 			Content             = new StreamContent(stream)
 			{
@@ -66,6 +94,13 @@ public static class PutObject
 			return this;
 		}
 
+		/// <summary>
+		/// Инициализировать контент из потока с указанным размером
+		/// </summary>
+		/// <param name="stream"></param>
+		/// <param name="length"></param>
+		/// <param name="contentType"></param>
+		/// <returns></returns>
 		public Request SetContent(Stream stream, long length, string contentType = "application/octet-stream")
 		{
 			ArgumentNullException.ThrowIfNull(stream);
@@ -83,6 +118,12 @@ public static class PutObject
 			return this;
 		}
 
+		/// <summary>
+		/// Заполнить тэги объекта
+		/// </summary>
+		/// <param name="tags"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public Request SetTagSet(IReadOnlyDictionary<string, string> tags)
 		{
 			if (tags is null || tags.Count is 0) return this;
@@ -113,6 +154,9 @@ public static class PutObject
 		}
 	}
 
+	/// <summary>
+	/// Данные созданного объекта
+	/// </summary>
 	public sealed class Result
 	{
 		public required string Key		{ get; init; }

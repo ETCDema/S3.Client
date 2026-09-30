@@ -1,12 +1,16 @@
 ﻿namespace S3.Client.Const;
 
+/// <summary>
+/// Тип хранилища
+/// </summary>
 public readonly struct StorageClass
 {
     private StorageClass(string name)
     {
-        Name = name;
+        Name					= name;
     }
 
+	/// <summary>Название типа</summary>
     public string Name { get; }
 
     public readonly override string ToString() => Name;

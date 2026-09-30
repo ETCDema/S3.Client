@@ -2,11 +2,7 @@ namespace S3.Client.Models;
 
 public sealed class GetPresignedUrlRequest
 {
-    public GetPresignedUrlRequest(
-        string method,
-        string bucketName,
-        string objectKey,
-        TimeSpan expiresIn)
+    public GetPresignedUrlRequest(string method, string bucketName, string objectKey, TimeSpan expiresIn)
     {
         ArgumentException.ThrowIfNullOrEmpty(method);
         ArgumentException.ThrowIfNullOrEmpty(bucketName);

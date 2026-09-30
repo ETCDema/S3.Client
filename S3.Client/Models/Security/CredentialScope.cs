@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
-using System.Text;
 
 using LinkDotNet.StringBuilder;
 
 namespace S3.Client.Models.Security;
 
+/// <summary>Область подписи</summary>
 public readonly struct CredentialScope : ISpanFormattable
 {
     public CredentialScope(DateOnly date, string region, string service)
@@ -12,18 +12,20 @@ public readonly struct CredentialScope : ISpanFormattable
         ArgumentNullException.ThrowIfNull(region);
         ArgumentNullException.ThrowIfNull(service);
 
-        Date = date;
-        Region = region;
-        Service = service;
+        Date					= date;
+        Region					= region;
+        Service					= service;
     }
 
+	/// <summary>Дата</summary>
     public DateOnly Date { get; }
 
+	/// <summary>Регион сервиса</summary>
 	public string Region { get; }
 
+	/// <summary>Тип сервиса</summary>
 	public string Service { get; }
 
-    // 20120228/us-east-1/iam/aws4_request
     public readonly override string ToString()
     {
         return string.Create(CultureInfo.InvariantCulture, $"{Date:yyyyMMdd}/{Region}/{Service}/aws4_request");

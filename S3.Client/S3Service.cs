@@ -2,26 +2,24 @@
 
 namespace S3.Client
 {
-	public class S3Service
+	/// <summary>
+	/// Данные сервиса для подключения
+	/// </summary>
+	/// <param name="baseUri">Базовый адрес сервиса</param>
+	/// <param name="credential">Данные для авторизации</param>
+	/// <param name="region">Регион сервиса</param>
+	public class S3Service(string baseUri, IS3Credential credential, string? region = null)
 	{
-		public S3Service(string baseUri, IS3Credential credential, string? region = null)
-		{
-			Host                = baseUri.IndexOf("://")<0 ? "https://"+baseUri : baseUri;
-			Credential			= credential;
-			Region				= region ?? "local";
-		}
-
-		protected S3Service(IS3Credential credential)
-		{
-			Credential			= credential;
-		}
-
+		/// <summary>Тип сервиса, всегда равен s3</summary>
 		public virtual string Type		{ get; } = "s3";
 
-		public virtual string Region	{ get; } = "local";
+		/// <summary>Регион размещения</summary>
+		public virtual string Region	{ get; } = region ?? "local";
 
-		public virtual string Host		{ get; } = default!;
-		
-		public IS3Credential Credential { get; }
+		/// <summary>Адрес сервиса для использования в запросах</summary>
+		public virtual string Endpoint	{ get; } = baseUri.IndexOf("://")<0 ? "https://"+baseUri : baseUri;
+
+		/// <summary>Данные для авторизации</summary>
+		public IS3Credential Credential { get; } = credential;
 	}
 }

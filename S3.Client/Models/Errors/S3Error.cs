@@ -2,23 +2,26 @@
 
 namespace S3.Client.Models.Errors;
 
+/// <summary>
+/// Ошибка, возвращаемая в ответе сервиса
+/// </summary>
 [XmlRoot("Error")]
 public sealed class S3Error
 {
     [XmlElement]
-    public string Code { get; init; } = default!;
+    public string Code			{ get; init; } = default!;
 
 	[XmlElement]
-    public string Message { get; init; } = default!;
+    public string Message		{ get; init; } = default!;
 
 	[XmlElement]
-    public string Resource { get; init; } = default!;
+    public string Resource		{ get; init; } = default!;
 
 	[XmlElement]
-    public string RequestId { get; init; } = default!;
+    public string RequestId		{ get; init; } = default!;
 
 	[XmlElement]
-    public string HostId { get; init; } = default!;
+    public string HostId		{ get; init; } = default!;
 
 	// TODO?
 	// RangeRequested

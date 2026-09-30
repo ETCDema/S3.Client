@@ -6,17 +6,14 @@ using S3.Client.Const;
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Запрос к S3
+/// </summary>
 public class S3Request : HttpRequestMessage
 {
 	private readonly Dictionary<string, string>? _parameters;
 
-	internal S3Request(
-        HttpMethod method,
-        S3Bucket bucket,
-        string? objectName,
-        string? versionId = null,
-        string? actionName = default,
-		Dictionary<string, string>? parameters = null)
+	internal S3Request(HttpMethod method, S3Bucket bucket, string? objectName, string? versionId = null, string? actionName = default, Dictionary<string, string>? parameters = null)
     {
         ArgumentNullException.ThrowIfNull(bucket);
 
@@ -48,8 +45,15 @@ public class S3Request : HttpRequestMessage
 		Headers.Add(S3HeaderNames.StorageClass, storageClass.Name);
 	}
 
+	/// <summary>
+	/// Обработчик, который будет вызван непосредственно перед отправкой
+	/// </summary>
 	internal Action<S3Request>? BeforeSend		{ get; set; }
 
+	/// <summary>
+	/// Инициализировать RequestUri запроса перед добавлением подписи
+	/// </summary>
+	/// <param name="host"></param>
 	internal void BuildRequestUri(string host)
 	{
 		ArgumentException.ThrowIfNullOrEmpty(host);

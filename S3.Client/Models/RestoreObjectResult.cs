@@ -2,9 +2,13 @@
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Результат восстановления удаленного объекта
+/// </summary>
+/// <param name="statusCode"></param>
 public sealed class RestoreObjectResult(HttpStatusCode statusCode)
 {
-    public HttpStatusCode StatusCode { get; } = statusCode;
+    public HttpStatusCode StatusCode	{ get; } = statusCode;
 }
 
 /*

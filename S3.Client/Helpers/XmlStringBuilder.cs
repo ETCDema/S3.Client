@@ -2,6 +2,10 @@
 
 namespace S3.Client.Helpers;
 
+/// <summary>
+/// Упрощенный генератор XML
+/// </summary>
+/// <param name="pretty"></param>
 internal ref struct XmlStringBuilder(bool pretty): IDisposable
 {
     private ValueStringBuilder _sb	= new(1024);

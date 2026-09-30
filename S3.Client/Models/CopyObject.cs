@@ -2,14 +2,21 @@
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Данные копирования объектов
+/// </summary>
 public static class CopyObject
 {
+	/// <summary>Режим копирования</summary>
 	public enum Policy
 	{
 		Copy                    = 0,
 		Replace                 = 1
 	}
 
+	/// <summary>
+	/// Результат копирования
+	/// </summary>
 	[XmlRoot(Namespace = S3Client.Namespace)]
 	public sealed class Result
 	{

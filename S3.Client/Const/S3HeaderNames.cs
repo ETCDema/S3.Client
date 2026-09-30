@@ -1,5 +1,8 @@
 ﻿namespace S3.Client.Const;
 
+/// <summary>
+/// Используемые для работы HTTP заголовки
+/// </summary>
 internal static class S3HeaderNames
 {
     public const string StorageClass							= "x-amz-storage-class";

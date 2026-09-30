@@ -13,35 +13,70 @@ using S3.Client.Models.Security;
 
 namespace S3.Client.Helpers;
 
+/// <summary>
+/// Методы для работы с подписью
+/// </summary>
 public static class SignerV4
 {
-    private const string _algorithmName     = "AWS4-HMAC-SHA256";
-    private const string _isoDateTimeFormat = "yyyyMMddTHHmmssZ";  // ISO8601
+    private const string _algorithmName			= "AWS4-HMAC-SHA256";
+    private const string _isoDateTimeFormat		= "yyyyMMddTHHmmssZ";  // ISO8601
 
-    [SkipLocalsInit]
-    internal static string GetStringToSign(
-        HttpRequestMessage request,
-        in CredentialScope scope,
-        List<string> signedHeaderNames)
+	/// <summary>
+	/// Подписать запрос и добавить пдпись в заголовки запроса
+	/// </summary>
+	/// <param name="credential">Данные авторизации</param>
+	/// <param name="scope">Область подписи</param>
+	/// <param name="request">Запрос</param>
+	[SkipLocalsInit]
+	public static void Sign(IS3Credential credential, in CredentialScope scope, HttpRequestMessage request)
+	{
+		if (!request.Headers.NonValidated.Contains(S3HeaderNames.ContentSHA256))
+			request.Headers.TryAddWithoutValidation(S3HeaderNames.ContentSHA256, ComputeSHA256(request.Content));
+
+		Span<byte> signingKey	= stackalloc byte[32];
+		_computeSigningKey(credential.SecretAccessKey, scope, signingKey);
+
+		var signedHeaderNames   = StringListPool.Get();
+
+		// AWS4-HMAC-SHA256 Credential={credential.AccessKeyId}/{scope},SignedHeaders={signedHeaders},Signature={signature}
+		var stringToSign        = GetStringToSign(request, scope, signedHeaderNames);
+		var sb                  = new ValueStringBuilder (stackalloc char[512]); // ~235
+		sb.Append("AWS4-HMAC-SHA256 Credential=");
+		sb.Append(credential.AccessKeyId);
+		sb.Append('/');
+		scope.AppendTo(ref sb);
+		sb.Append(",SignedHeaders=");
+		sb.AppendJoin(';', signedHeaderNames);
+		sb.Append(",Signature=");
+		_computeAndWriteHMACSHA256Hex(signingKey, stringToSign, ref sb); // signature
+
+		StringListPool.Return(signedHeaderNames);
+
+		request.Headers.TryAddWithoutValidation("Authorization", sb.ToString());
+		sb.Dispose();
+	}
+
+
+	[SkipLocalsInit]
+    internal static string GetStringToSign(HttpRequestMessage request, in CredentialScope scope, List<string> signedHeaderNames)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        string timestamp = request.Headers.NonValidated.TryGetValues(S3HeaderNames.Date, out var xAmzDateHeader)
-            ? xAmzDateHeader.ToString()
-            : throw new Exception($"Missing '{S3HeaderNames.Date}' header");
+		var timestamp			= request.Headers.NonValidated.TryGetValues(S3HeaderNames.Date, out var xAmzDateHeader)
+								? xAmzDateHeader.ToString()
+								: throw new Exception($"Missing '{S3HeaderNames.Date}' header");
 
         var sb					= new ValueStringBuilder (stackalloc char[512]); // ~350
 
         WriteCanonicalRequest(ref sb, request, signedHeaderNames);
 
-        var result = GetStringToSign(
-            scope            : scope,
-            timestamp        : timestamp,
-            canonicalRequest : sb.ToString()
+        var result				= GetStringToSign(
+            scope				: scope,
+            timestamp			: timestamp,
+            canonicalRequest	: sb.ToString()
         );
 
 		sb.Dispose();
-
         return result;
     }
 
@@ -60,31 +95,7 @@ public static class SignerV4
 		return result;
     }
 
-    // Timestamp format: ISO8601 Basic format, YYYYMMDD'T'HHMMSS'Z'
-
-    internal static string GetCanonicalRequest(HttpRequestMessage request)
-    {
-        return GetCanonicalRequest(request, []);
-    }
-
-    [SkipLocalsInit]
-    internal static string GetCanonicalRequest(
-        HttpRequestMessage request,
-        List<string> signedHeaderNames)
-    {
-		var output				= new ValueStringBuilder (stackalloc char[512]); // ~350
-
-		WriteCanonicalRequest(ref output, request, signedHeaderNames);
-
-		var result              = output.ToString();
-		output.Dispose();
-		return result;
-	}
-
-	internal static void WriteCanonicalRequest(
-        ref ValueStringBuilder output, 
-        HttpRequestMessage request, 
-        List<string> signedHeaderNames)
+	internal static void WriteCanonicalRequest(ref ValueStringBuilder output, HttpRequestMessage request, List<string> signedHeaderNames)
     {
         output.Append(request.Method.Method)                                ; output.Append('\n'); // HTTPRequestMethod      + \n
         _writeCanonicalizedUri(ref output, request.RequestUri!.AbsolutePath) ; output.Append('\n'); // CanonicalURI           + \n
@@ -98,12 +109,9 @@ public static class SignerV4
     [SkipLocalsInit]
     public static string CanonicalizeUri(string path)
     {
-        if (path is "/")
-        {
-            return path;
-        }
+        if (path is "/") return path;
 
-		var output		= new ValueStringBuilder (stackalloc char[256]);
+		var output				= new ValueStringBuilder (stackalloc char[256]);
 
 		_writeCanonicalizedUri(ref output, path);
 
@@ -142,13 +150,7 @@ public static class SignerV4
     }
 
     [SkipLocalsInit]
-    public static string GetCanonicalRequest(
-        HttpMethod method,
-        string canonicalURI,
-        string canonicalQueryString,
-        string canonicalHeaders,
-        string signedHeaders,
-        string payloadHash)
+    public static string GetCanonicalRequest(HttpMethod method, string canonicalURI, string canonicalQueryString, string canonicalHeaders, string signedHeaders, string payloadHash)
     {
 		using var sb            = new ValueStringBuilder (stackalloc char[512]); // ~350
 
@@ -198,49 +200,10 @@ public static class SignerV4
         HMACSHA256.HashData(signingKey, _aws4_request,         signingKey);
     }
 
-    public static byte[] ComputeSigningKey(string secretAccessKey, in CredentialScope scope)
-    {
-        var signingKey = new byte[32];
-
-        _computeSigningKey(secretAccessKey, scope, signingKey);
-
-        return signingKey;
-    }
-
     // http://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html
 
-    public static void Presign(
-        IS3Credential credential,
-        CredentialScope scope,
-        DateTime date,
-        TimeSpan expires,
-        HttpRequestMessage request,
-        string payloadHash = _emptySha256)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-
-        string presignedUrl = GetPresignedUrl(
-            credential  : credential,
-            scope       : scope,
-            date        : date,
-            expires     : expires,
-            method      : request.Method,
-            requestUri  : request.RequestUri!,
-            payloadHash : payloadHash
-        );
-
-        request.RequestUri = new Uri(presignedUrl);
-    }
-
     [SkipLocalsInit]
-    public static string GetPresignedUrl(
-		IS3Credential credential,
-        CredentialScope scope,
-        DateTime date,
-        TimeSpan expires,
-        HttpMethod method,
-        Uri requestUri,
-        string payloadHash = _emptySha256)
+    public static string GetPresignedUrl(IS3Credential credential, CredentialScope scope, DateTime date, TimeSpan expires, HttpMethod method, Uri requestUri, string payloadHash = _emptySha256)
     {
         const string signedHeaders = "host";
 
@@ -321,49 +284,6 @@ public static class SignerV4
 		var result				= urlBuilder.ToString();
 		urlBuilder.Dispose();
 		return result;
-    }
-
-    [SkipLocalsInit]
-    public static void Sign(IS3Credential credential, in CredentialScope scope, HttpRequestMessage request)
-    {
-        if (!request.Headers.NonValidated.Contains(S3HeaderNames.ContentSHA256))
-            request.Headers.TryAddWithoutValidation(S3HeaderNames.ContentSHA256, ComputeSHA256(request.Content));
-
-        Span<byte> signingKey = stackalloc byte[32];
-
-        _computeSigningKey(credential.SecretAccessKey, scope, signingKey);
-
-        var signedHeaderNames	= StringListPool.Get();
-
-		string stringToSign = GetStringToSign(request, scope, signedHeaderNames);
-
-		var sb					= new ValueStringBuilder (stackalloc char[512]); // ~235
-
-		// AWS4-HMAC-SHA256 Credential={credential.AccessKeyId}/{scope},SignedHeaders={signedHeaders},Signature={signature}
-
-		sb.Append("AWS4-HMAC-SHA256 Credential=");
-        sb.Append(credential.AccessKeyId);
-        sb.Append('/');
-        scope.AppendTo(ref sb);
-        sb.Append(",SignedHeaders=");
-        sb.AppendJoin(';', signedHeaderNames);
-        sb.Append(",Signature=");
-        _computeAndWriteHMACSHA256Hex(signingKey, stringToSign, ref sb); // signature
-
-		StringListPool.Return(signedHeaderNames);
-
-		request.Headers.TryAddWithoutValidation("Authorization", sb.ToString());
-		sb.Dispose();
-    }
-
-    public static string CanonicalizeQueryString(Uri uri)
-    {
-        if (string.IsNullOrEmpty(uri.Query) || uri.Query is "?")
-        {
-            return string.Empty;
-        }
-
-        return _canonicalizeQueryString(_parseQueryString(uri.Query));
     }
 
     [SkipLocalsInit]
@@ -450,24 +370,7 @@ public static class SignerV4
         return dictionary;
     }
 
-    [SkipLocalsInit]
-    internal static string CanonicalizeHeaders(
-        HttpRequestMessage request,
-        List<string> signedHeaderNames)
-    {
-		var output				= new ValueStringBuilder (stackalloc char[256]); // ~155
-
-		_writeCanonicalizedHeaders(ref output, request, signedHeaderNames);
-
-		var result              = output.ToString();
-		output.Dispose();
-		return result;
-	}
-
-	private static void _writeCanonicalizedHeaders(
-        ref ValueStringBuilder output, 
-        HttpRequestMessage request, 
-        List<string> signedHeaderNames)
+	private static void _writeCanonicalizedHeaders(ref ValueStringBuilder output, HttpRequestMessage request, List<string> signedHeaderNames)
     {
         if (request.Content is not null)
         {
@@ -562,10 +465,7 @@ public static class SignerV4
     }
 
     [SkipLocalsInit]
-    private static void _computeAndWriteHMACSHA256Hex(
-        ReadOnlySpan<byte> key,
-        ReadOnlySpan<char> data,
-		ref ValueStringBuilder destination)
+    private static void _computeAndWriteHMACSHA256Hex(ReadOnlySpan<byte> key, ReadOnlySpan<char> data, ref ValueStringBuilder destination)
     {
         byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(data.Length * 4);
 

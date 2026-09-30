@@ -4,6 +4,7 @@ using S3.Client.Models.Security;
 
 namespace S3.Client.Services;
 
+// TODO: Можно убрать в S3Client
 internal static class S3Helper
 {
     public static string GetPresignedUrl(S3Service service, GetPresignedUrlRequest request, IS3Credential credential)
@@ -21,7 +22,7 @@ internal static class S3Helper
             date        : utcNow,
             expires     : request.ExpiresIn, 
             method      : _getHttpMethod(request.Method),
-            requestUri  : new Uri(request.GetUrl(service.Host)),
+            requestUri  : new Uri(request.GetUrl(service.Endpoint)),
             payloadHash : S3Client._UNSIGNED_PAYLOAD
 		);
     }

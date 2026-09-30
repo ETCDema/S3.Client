@@ -13,17 +13,31 @@ using S3.Client.Services;
 
 namespace S3.Client
 {
+	/// <summary>
+	/// Работа с объектами в бакете
+	/// </summary>
 	public class S3Bucket
 	{
 		protected readonly S3Client Client;
 		private readonly Action<S3Request>? _beforeSendHandler;
 
+		/// <summary>
+		/// Создание экземпляра
+		/// </summary>
+		/// <param name="client"><see cref="S3Client"/></param>
+		/// <param name="name">Имя бакета</param>
 		protected internal S3Bucket(S3Client client, string name)
 		{
 			Client				= client;
 			Name				= name;
 		}
 
+		/// <summary>
+		/// Создание экземпляра с добавлением метода обработки запроса непосредственно перед отправкой.
+		/// </summary>
+		/// <param name="client"><see cref="S3Client"/></param>
+		/// <param name="name">Имя бакета</param>
+		/// <param name="beforeSendHandler">Обработчик запроса непосредственно перед отправкой</param>
 		protected S3Bucket(S3Client client, string name, Action<S3Request>? beforeSendHandler)
 		{
 			Client              = client;
@@ -31,10 +45,17 @@ namespace S3.Client
 			_beforeSendHandler	= beforeSendHandler;
 		}
 
+		/// <summary>Имя бакета</summary>
 		public string Name		{ get; }
 
 		#region List and get
 
+		/// <summary>
+		/// Получить список объектов
+		/// </summary>
+		/// <param name="options">Параметры <see cref="ListBucket.Options"/></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<ListBucket.Result> ListBucket(ListBucket.Options options, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Get, this, null, parameters: options.Items)
@@ -44,6 +65,12 @@ namespace S3.Client
 			return await Send<ListBucket.Result>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Получить список версий
+		/// </summary>
+		/// <param name="options">Параметры <see cref="ListVersions.Options"/></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<ListVersions.Result> ListObjectVersions(ListVersions.Options options, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Get, this, null, actionName: S3Action.Versions, parameters: options.Items)
@@ -53,6 +80,13 @@ namespace S3.Client
 			return await Send<ListVersions.Result>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Получить объект и его содержимое
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="opt">Параметры <see cref="GetObjectOptions"/></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<S3Object> GetObject(string key, GetObjectOptions? opt, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Get, this, key)
@@ -67,6 +101,12 @@ namespace S3.Client
 			return new S3Object(key, response);
 		}
 
+		/// <summary>
+		/// Получить объект и его содержимое
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<S3Object> GetObject(string key, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Get, this, key)
@@ -80,6 +120,12 @@ namespace S3.Client
 			return new S3Object(key, response);
 		}
 
+		/// <summary>
+		/// Получить метаданные объекта
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<S3ObjectInfo> GetObjectHead(string key, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Head, this, key)
@@ -97,6 +143,13 @@ namespace S3.Client
 
 		#region Multipart put
 
+		/// <summary>
+		/// Инициирвать новую загрузку по частям
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="contentType">Тип контента</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<MultipartUpload.IMiltipartUpload> InitiateMultipartPut(string key, string? contentType = null, CancellationToken cancellationToken = default)
 		{
 			var request         = new MultipartUpload.InitiateRequest(this, key)
@@ -106,6 +159,14 @@ namespace S3.Client
 			return await Send<MultipartUpload.InitiateResult>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Загрузить часть объекта
+		/// </summary>
+		/// <param name="dst">Данные загрузки по частям</param>
+		/// <param name="partNumber">Номер части</param>
+		/// <param name="contentBuilder">Метод инициализации контента</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<MultipartUpload.UploadPartResult> PutPart(MultipartUpload.IMiltipartUpload dst, int partNumber, Func<PutObject.Request, Task> contentBuilder, CancellationToken cancellationToken = default)
 		{
 			var request         = new PutObject.Request(this, string.Create(CultureInfo.InvariantCulture, $"{dst.Key}?partNumber={partNumber}&uploadId={dst.UploadId}"));
@@ -115,6 +176,13 @@ namespace S3.Client
 			return new MultipartUpload.UploadPartResult(dst, partNumber, response.Headers.ETag!.Tag);
 		}
 
+		/// <summary>
+		/// Завершить загрузку объекта по частям
+		/// </summary>
+		/// <param name="dst">Данные загрузки по частям</param>
+		/// <param name="parts">Данные о загруженных частях</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<MultipartUpload.CompleteResult> CompleteMultipartPut(MultipartUpload.IMiltipartUpload dst, IReadOnlyList<MultipartUpload.UploadPartResult> parts, CancellationToken cancellationToken = default)
 		{
 			string xml;
@@ -145,6 +213,12 @@ namespace S3.Client
 			return await Send<MultipartUpload.CompleteResult>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Отменить загрузку по частям
+		/// </summary>
+		/// <param name="dst">Данные загрузки по частям</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task AbortMultipartPut(MultipartUpload.IMiltipartUpload dst, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Delete, this, $"{dst.Key}?uploadId={dst.UploadId}")
@@ -158,6 +232,13 @@ namespace S3.Client
 
 		#region Put, copy and Delete
 
+		/// <summary>
+		/// Добавить или заменить объект
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="contentBuilder">Метод инициализации контента</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<PutObject.Result> PutObject(string key, Func<PutObject.Request, Task> contentBuilder, CancellationToken cancellationToken = default)
 		{
 			var request         = new PutObject.Request(this, key);
@@ -173,7 +254,16 @@ namespace S3.Client
 				VersionId       = response.Headers.TryGetValue(S3HeaderNames.VersionId)
 			};
 		}
-		
+
+		/// <summary>
+		/// Копировать объект в этот бакет
+		/// </summary>
+		/// <param name="dstKey">Идентификатор копии объекта в этом бакете</param>
+		/// <param name="srcBucket">Из какого бакета копируем</param>
+		/// <param name="srcKey">Идентификатор исходного объекта</param>
+		/// <param name="cp">Что делать если объект уже есть</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<CopyObject.Result> CopyObject(string dstKey, string srcBucket, string srcKey, CopyObject.Policy cp = Models.CopyObject.Policy.Copy, CancellationToken cancellationToken = default)
 		{
 			string? cpVal       = cp switch
@@ -193,6 +283,13 @@ namespace S3.Client
 			return await Send<CopyObject.Result>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Удалить объект
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		/// <exception cref="S3Exception"></exception>
 		public async Task<Delete.Result> DeleteObject(string key, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Delete, this, key)
@@ -212,6 +309,14 @@ namespace S3.Client
 			);
 		}
 
+		/// <summary>
+		/// Удалить версию объекта
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="versionId">Идентификатор версии объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		/// <exception cref="S3Exception"></exception>
 		public async Task<Delete.Result> DeleteObject(string key, string? versionId, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Delete, this, key, versionId: versionId)
@@ -231,6 +336,14 @@ namespace S3.Client
 			);
 		}
 
+		/// <summary>
+		/// Пакетное удаление объектов
+		/// </summary>
+		/// <param name="keys">Идентификаторы удаляемых объектов</param>
+		/// <param name="quite"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public async Task<DeleteBatch.Result> DeleteObjects(IReadOnlyList<string> keys, bool quite = false, CancellationToken cancellationToken = default)
 		{
 			ArgumentNullException.ThrowIfNull(keys);
@@ -269,6 +382,15 @@ namespace S3.Client
 			return await Send<DeleteBatch.Result>(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Восстановить удаленный объект
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="version">Идентификатор версии объекта</param>
+		/// <param name="days"></param>
+		/// <param name="tier"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<RestoreObjectResult> RestoreObject(string key, string? version = null, int days = 7, GlacierJobTier tier = GlacierJobTier.Standard, CancellationToken cancellationToken = default)
 		{
 			var xml				= string.Create(CultureInfo.InvariantCulture,
@@ -294,6 +416,12 @@ $"""
 
 		#region Tagging
 
+		/// <summary>
+		/// Получить тэги объекта если они есть
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<Dictionary<string, string>?> TryGetObjectTags(string key, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Get, this, key, actionName: S3Action.Tagging)
@@ -308,6 +436,15 @@ $"""
 			return S3Serializer<S3ObjectTags>.Deserialize(content).TryToDictionary();
 		}
 
+		/// <summary>
+		/// Добавить или заменить теги объекта
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="tags">Тэги</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="ArgumentException"></exception>
 		public async Task PutObjectTags(string key, IReadOnlyDictionary<string, string> tags, CancellationToken cancellationToken = default)
 		{
 			if (tags is null || tags.Count == 0) throw new ArgumentNullException(nameof(tags));
@@ -349,6 +486,12 @@ $"""
 			using var response  = await Send(request, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Удалить тэги объекта
+		/// </summary>
+		/// <param name="key">Идентификатор объекта</param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task DeleteObjectTags(string key, CancellationToken cancellationToken = default)
 		{
 			var request         = new S3Request(HttpMethod.Delete, this, key, actionName: S3Action.Tagging)
@@ -360,12 +503,16 @@ $"""
 
 		#endregion
 
+		/// <inheritdoc cref="S3Client.Send(S3Request, CancellationToken)"/>
+		/// <remarks>В наследниках можно добавить дополнительную обработку запроса перед отправкой</remarks>
 		protected virtual Task<HttpResponseMessage> Send(S3Request request, CancellationToken cancellationToken)
 		{
 			request.BeforeSend  = _beforeSendHandler;
 			return Client.Send(request, cancellationToken);
 		}
 
+		/// <inheritdoc cref="S3Client.Send{TResult}(S3Request, CancellationToken)"/>
+		/// <remarks>В наследниках можно добавить дополнительную обработку запроса перед отправкой</remarks>
 		protected virtual Task<TResult> Send<TResult>(S3Request request, CancellationToken cancellationToken)
 			where TResult : class
 		{

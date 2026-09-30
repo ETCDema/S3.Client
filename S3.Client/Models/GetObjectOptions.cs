@@ -2,12 +2,21 @@
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Параметры получения объекта
+/// </summary>
 public sealed class GetObjectOptions
 {
 	public DateTime? IfModifiedSince	{ get; set; }
 
 	public string? IfNoneMatch			{ get; set; }
 
+	/// <summary>
+	/// Получить только указанную часть содержимого
+	/// </summary>
+	/// <param name="from"></param>
+	/// <param name="to"></param>
+	/// <returns></returns>
 	public GetObjectOptions SetRange(long? from, long? to)
 	{
 		if (from.HasValue && to.HasValue)

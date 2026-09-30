@@ -1,5 +1,8 @@
 ﻿namespace S3.Client.Models.Security;
 
+/// <summary>
+/// Данные для авторизации на основе AccessKeyId + SecretAccessKey
+/// </summary>
 public sealed class S3Credential : IS3Credential
 {
     public S3Credential(string accessKeyId, string secretAccessKey)
@@ -11,7 +14,6 @@ public sealed class S3Credential : IS3Credential
         SecretAccessKey			= secretAccessKey;
     }
 
-    // 16 - 32 characters
     public string AccessKeyId		{ get; }
 
     public string SecretAccessKey	{ get; }

@@ -5,8 +5,14 @@ using S3.Client.Const;
 
 namespace S3.Client.Models
 {
+	/// <summary>
+	/// Данные для загрузки объектов по частям
+	/// </summary>
 	public static class MultipartUpload
 	{
+		/// <summary>
+		/// Запрос начала загрузки
+		/// </summary>
 		public sealed class InitiateRequest : S3Request
 		{
 			public InitiateRequest(S3Bucket bucket, string key, IReadOnlyDictionary<string, string>? properties = null)
@@ -19,6 +25,7 @@ namespace S3.Client.Models
 				_updateHeaders(properties);
 			}
 
+			/// <summary>Тип контента</summary>
 			public string? ContentType
 			{
 				get => Content!.Headers.ContentType?.ToString();
@@ -74,6 +81,7 @@ namespace S3.Client.Models
 			}
 		}
 
+		/// <summary>Данные загрузки по частям для продолжения, завершения и отмены загрузки</summary>
 		public interface IMiltipartUpload
 		{
 			string Bucket		{ get; }
@@ -83,6 +91,9 @@ namespace S3.Client.Models
 			string UploadId		{ get; }
 		}
 
+		/// <summary>
+		/// Ответ о начале загруки
+		/// </summary>
 		[XmlRoot("InitiateMultipartUploadResult", Namespace = S3Client.Namespace)]
 		public sealed class InitiateResult: IMiltipartUpload
 		{
@@ -96,6 +107,9 @@ namespace S3.Client.Models
 			public string UploadId		{ get; init; } = default!;
 		}
 
+		/// <summary>
+		/// Ответ о загрузки части
+		/// </summary>
 		public sealed class UploadPartResult: IMiltipartUpload
 		{
 			public UploadPartResult(IMiltipartUpload dst, int partNumber, string eTag)
@@ -120,6 +134,9 @@ namespace S3.Client.Models
 			public string ETag			{ get; }
 		}
 
+		/// <summary>
+		/// Ответ о завершении загрузки
+		/// </summary>
 		[XmlRoot("CompleteMultipartUploadResult", Namespace = S3Client.Namespace)]
 		public sealed class CompleteResult
 		{

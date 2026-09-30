@@ -3,6 +3,9 @@ using System.Net.Http.Headers;
 
 namespace S3.Client.Models;
 
+/// <summary>
+/// Объект в бакете
+/// </summary>
 public sealed class S3Object : S3ObjectInfo, IDisposable
 {
     private Stream? _stream;
@@ -32,12 +35,16 @@ public sealed class S3Object : S3ObjectInfo, IDisposable
 								: null;
 	}
 
-	public HttpStatusCode StatusCode { get; }
+	public HttpStatusCode StatusCode			 { get; }
 
     public CacheControlHeaderValue? CacheControl { get; private set; }
 
     public ContentRangeHeaderValue? ContentRange { get; private set; }
 
+	/// <summary>
+	/// Открыть поток содержимого для чтения
+	/// </summary>
+	/// <returns></returns>
 	public async ValueTask<Stream> Open()
     {
         ObjectDisposedException.ThrowIf(_response is null, this);
@@ -45,6 +52,10 @@ public sealed class S3Object : S3ObjectInfo, IDisposable
         return _stream ??= await _response.Content.ReadAsStreamAsync().ConfigureAwait(false);
     }
 
+	/// <summary>
+	/// Прочитать содержимое как массив байт
+	/// </summary>
+	/// <returns></returns>
     public Task<byte[]> ReadAsByteArray()
     {
         ObjectDisposedException.ThrowIf(_response is null, this);
